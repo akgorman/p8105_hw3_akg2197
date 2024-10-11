@@ -5,15 +5,20 @@ date: "2024-10-10"
 output: html_document
 ---
 
+```{r setup}
 library(tidyverse)
+```
 
 ## Problem 1 
-
+```{r}
 library(p8105.datasets)
 data("ny_noaa")
+```
 
 ## Problem 2 
 ```{r}
-demographic_data = read_csv("~/Desktop/p8105_hw3_akg2197/nhanes_covar.csv")
-
-accelerometer_data = read_csv("~/Desktop/p8105_hw3_akg2197/nhanes_accel.csv")
+demographic_data = read_csv("nhanes_covar.csv") |>
+  janitor::clean_names() 
+accelerometer_data = read_csv("nhanes_accel.csv") |>
+  janitor::clean_names()
+```
