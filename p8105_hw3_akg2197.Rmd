@@ -51,7 +51,7 @@ accelerometer_data = read_csv("nhanes_accel.csv") |>
   janitor::clean_names() 
 
 merged_nhanes = accelerometer_data |>
-  inner_join(demographic_data, by="seqn") |>
+  inner_join(demographic_data, by="SEQN") |>
   relocate(seqn, sex, age, bmi, education) |>
   filter(age>20)|>
   mutate (
