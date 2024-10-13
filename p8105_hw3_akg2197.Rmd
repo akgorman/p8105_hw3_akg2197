@@ -16,9 +16,21 @@ data("ny_noaa")
 ```
 
 ## Problem 2 
+Loading and cleaning the demographic data:
 ```{r}
-demographic_data = read_csv("nhanes_covar.csv") |>
-  janitor::clean_names() 
+demographic_df = read_csv("nhanes_covar.csv") |>
+  janitor::clean_names() |>
+  filter(age > 20)
+```
+We can use this code chunk to examine our demographic dataset:
+```{r}
+demographic_df
+head(demographic_df)
+```
+
+
+Loading and cleaning the accelerometer data:
+```{r}
 accelerometer_data = read_csv("nhanes_accel.csv") |>
   janitor::clean_names()
 ```
