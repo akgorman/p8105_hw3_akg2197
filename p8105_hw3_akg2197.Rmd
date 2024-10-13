@@ -5,8 +5,12 @@ date: "2024-10-10"
 output: html_document
 ---
 
+## Loading libraries 
+
 ```{r setup}
 library(tidyverse)
+library(viridis)
+library(patchwork)
 ```
 
 ## Problem 1 
@@ -16,21 +20,31 @@ data("ny_noaa")
 ```
 
 ## Problem 2 
-Loading and cleaning the demographic data:
+Loading the demographic data:
 ```{r}
-demographic_df = read_csv("nhanes_covar.csv") |>
+demographic_data = read_csv("nhanes_covar.csv") |>
   janitor::clean_names() |>
-  filter(age > 20)
-```
-We can use this code chunk to examine our demographic dataset:
-```{r}
-demographic_df
-head(demographic_df)
-```
+  drop_na() 
 
-
-Loading and cleaning the accelerometer data:
-```{r}
 accelerometer_data = read_csv("nhanes_accel.csv") |>
-  janitor::clean_names()
+  janitor::clean_names() 
+
+merged_nhanes = accelerometer_data |>
+  inner_join(demographic_data, by="seqn") |>
+  relocate(seqn, sex, age, bmi, education) |>
+  filter(age>20)|>
+  mutate (
+    sex = case_when(sex==1~"male", sex==2 ~ "female"), 
+    education = case_when(
+      education==1 ~ "less than high school",
+      education==2 ~ "high school equivalent",
+      education==3 ~ "more than high school")) 
+```
+We can use this code chunk to examine our datasets:
+```{r}
+demographic_data
+head(demographic_data)
+
+accelerometer_data
+head(accelerometer_data)
 ```
