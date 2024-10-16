@@ -45,22 +45,23 @@ Loading the demographic data:
 ```{r}
 demographic_data = read_csv("nhanes_covar.csv", skip = 4) |>
   janitor::clean_names() |>
-  drop_na() 
-
-accelerometer_data = read_csv("nhanes_accel.csv") |>
-  janitor::clean_names() |>
-  pivot_longer(names_to = "minute", values_to = "MIMS", starts_with("min"))
-
-merged_nhanes = demographic_data |>
-  left_join(accelerometer_data, by= join_by(seqn)) |>
-  relocate(seqn, sex, age, bmi, education) |>
-  filter(age>20)|>
+  drop_na() |>
   mutate (
     sex = case_when(sex==1~"male", sex==2 ~ "female"), 
     education = case_when(
       education==1 ~ "less than high school",
       education==2 ~ "high school equivalent",
       education==3 ~ "more than high school")) 
+
+accelerometer_data = read_csv("nhanes_accel.csv") |>
+  janitor::clean_names() |>
+  pivot_longer(names_to = "minute", values_to = "MIMS", starts_with("min"), names_prefix = "min") |>
+  mutate(minute = as.numeric(minute))
+
+merged_nhanes = demographic_data |>
+  left_join(accelerometer_data, by= join_by(seqn)) |>
+  relocate(seqn, sex, age, bmi, education) |>
+  filter(age>20)
 ```
 We can use this code chunk to examine our datasets:
 ```{r}
@@ -71,4 +72,15 @@ accelerometer_data
 view(accelerometer_data)
 ```
 The data are cleaned and we can now move on to visualizing the data. 
+
+We will create a visualization of men and women in each education category:
+```{r}
+education_table <- demographic_data |>
+  count(education, sex) |>
+  pivot_wider(names_from = sex, values_from = n, values_fill = 0) |>
+  rename ("Level of Education" = education)
+knitr::kable(education_table, format = "markdown", caption = "Age Distributions for Men and Women in Each Education Category")
+```
+Visualization of total activity variable for each participant:
+
 

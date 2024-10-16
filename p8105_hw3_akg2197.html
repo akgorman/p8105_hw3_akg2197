@@ -370,7 +370,13 @@ data(&quot;ny_noaa&quot;)</code></pre>
 <p>Loading the demographic data:</p>
 <pre class="r"><code>demographic_data = read_csv(&quot;nhanes_covar.csv&quot;, skip = 4) |&gt;
   janitor::clean_names() |&gt;
-  drop_na() </code></pre>
+  drop_na() |&gt;
+  mutate (
+    sex = case_when(sex==1~&quot;male&quot;, sex==2 ~ &quot;female&quot;), 
+    education = case_when(
+      education==1 ~ &quot;less than high school&quot;,
+      education==2 ~ &quot;high school equivalent&quot;,
+      education==3 ~ &quot;more than high school&quot;)) </code></pre>
 <pre><code>## Rows: 250 Columns: 5
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
@@ -380,7 +386,8 @@ data(&quot;ny_noaa&quot;)</code></pre>
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 <pre class="r"><code>accelerometer_data = read_csv(&quot;nhanes_accel.csv&quot;) |&gt;
   janitor::clean_names() |&gt;
-  pivot_longer(names_to = &quot;minute&quot;, values_to = &quot;MIMS&quot;, starts_with(&quot;min&quot;))</code></pre>
+  pivot_longer(names_to = &quot;minute&quot;, values_to = &quot;MIMS&quot;, starts_with(&quot;min&quot;), names_prefix = &quot;min&quot;) |&gt;
+  mutate(minute = as.numeric(minute))</code></pre>
 <pre><code>## Rows: 250 Columns: 1441
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
@@ -391,49 +398,79 @@ data(&quot;ny_noaa&quot;)</code></pre>
 <pre class="r"><code>merged_nhanes = demographic_data |&gt;
   left_join(accelerometer_data, by= join_by(seqn)) |&gt;
   relocate(seqn, sex, age, bmi, education) |&gt;
-  filter(age&gt;20)|&gt;
-  mutate (
-    sex = case_when(sex==1~&quot;male&quot;, sex==2 ~ &quot;female&quot;), 
-    education = case_when(
-      education==1 ~ &quot;less than high school&quot;,
-      education==2 ~ &quot;high school equivalent&quot;,
-      education==3 ~ &quot;more than high school&quot;)) </code></pre>
+  filter(age&gt;20)</code></pre>
 <p>We can use this code chunk to examine our datasets:</p>
 <pre class="r"><code>demographic_data</code></pre>
 <pre><code>## # A tibble: 229 × 5
-##     seqn   sex   age   bmi education
-##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;
-##  1 62161     1    22  23.3         2
-##  2 62164     2    44  23.2         3
-##  3 62169     1    21  20.1         2
-##  4 62174     1    80  33.9         3
-##  5 62177     1    51  20.1         2
-##  6 62178     1    80  28.5         2
-##  7 62180     1    35  27.9         3
-##  8 62184     1    26  22.1         2
-##  9 62189     2    30  22.4         3
-## 10 62199     1    57  28           3
+##     seqn sex      age   bmi education             
+##    &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;                 
+##  1 62161 male      22  23.3 high school equivalent
+##  2 62164 female    44  23.2 more than high school 
+##  3 62169 male      21  20.1 high school equivalent
+##  4 62174 male      80  33.9 more than high school 
+##  5 62177 male      51  20.1 high school equivalent
+##  6 62178 male      80  28.5 high school equivalent
+##  7 62180 male      35  27.9 more than high school 
+##  8 62184 male      26  22.1 high school equivalent
+##  9 62189 female    30  22.4 more than high school 
+## 10 62199 male      57  28   more than high school 
 ## # ℹ 219 more rows</code></pre>
 <pre class="r"><code>view(demographic_data)
 
 accelerometer_data</code></pre>
 <pre><code>## # A tibble: 360,000 × 3
 ##     seqn minute  MIMS
-##    &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt;
-##  1 62161 min1   1.11 
-##  2 62161 min2   3.12 
-##  3 62161 min3   1.47 
-##  4 62161 min4   0.938
-##  5 62161 min5   1.60 
-##  6 62161 min6   0.145
-##  7 62161 min7   2.10 
-##  8 62161 min8   0.509
-##  9 62161 min9   1.63 
-## 10 62161 min10  1.20 
+##    &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+##  1 62161      1 1.11 
+##  2 62161      2 3.12 
+##  3 62161      3 1.47 
+##  4 62161      4 0.938
+##  5 62161      5 1.60 
+##  6 62161      6 0.145
+##  7 62161      7 2.10 
+##  8 62161      8 0.509
+##  9 62161      9 1.63 
+## 10 62161     10 1.20 
 ## # ℹ 359,990 more rows</code></pre>
 <pre class="r"><code>view(accelerometer_data)</code></pre>
 <p>The data are cleaned and we can now move on to visualizing the
 data.</p>
+<p>We will create a visualization of men and women in each education
+category:</p>
+<pre class="r"><code>education_table &lt;- demographic_data |&gt;
+  count(education, sex) |&gt;
+  pivot_wider(names_from = sex, values_from = n, values_fill = 0) |&gt;
+  rename (&quot;Level of Education&quot; = education)
+knitr::kable(education_table, format = &quot;markdown&quot;, caption = &quot;Age Distributions for Men and Women in Each Education Category&quot;)</code></pre>
+<table>
+<caption>Age Distributions for Men and Women in Each Education
+Category</caption>
+<thead>
+<tr class="header">
+<th align="left">Level of Education</th>
+<th align="right">female</th>
+<th align="right">male</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">high school equivalent</td>
+<td align="right">23</td>
+<td align="right">36</td>
+</tr>
+<tr class="even">
+<td align="left">less than high school</td>
+<td align="right">28</td>
+<td align="right">27</td>
+</tr>
+<tr class="odd">
+<td align="left">more than high school</td>
+<td align="right">59</td>
+<td align="right">56</td>
+</tr>
+</tbody>
+</table>
+<p>Visualization of total activity variable for each participant:</p>
 </div>
 
 
