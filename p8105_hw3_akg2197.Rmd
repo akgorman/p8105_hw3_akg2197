@@ -74,7 +74,7 @@ view(accelerometer_data)
 ```
 The data are cleaned and we can now move on to visualizing the data. 
 
-We will create a visualization of men and women in each education category:
+We will create a table of men and women in each education category:
 ```{r}
 education_table <- demographic_data |>
   count(education, sex) |>
@@ -82,6 +82,25 @@ education_table <- demographic_data |>
   rename ("Level of Education" = education)
 knitr::kable(education_table, format = "markdown", caption = "Age Distributions for Men and Women in Each Education Category")
 ```
+In this table, we can see that for the "less than high school" education category, 28 females and 27 males were documented. For "high school equivalent," 23 females and 36 males were recorded. "More than high school" was the most common education status, with 59 females and 56 males. 
+
+We can also visualize this data of the age distributions for men and women in each education category:
+```{r} 
+  ggplot(merged_nhanes, aes(x = sex, y = education, fill = sex)) + 
+  geom_violin(trim = FALSE, color = "blue", alpha = .5) + 
+  scale_fill_viridis_d(option = "plasma") + 
+  labs(
+    title = "Distribution of Sex by Education Category", 
+    x = "Age",
+    y = "Education Category",
+    fill = "Sex"
+  ) +
+  theme_minimal() + 
+  theme(legend.position = "bottom")
+#ASK FOR HELP IN OH
+```
+We can see from this violin plot that 
+
 Visualization of total activity variable for each participant:
 ```{r}
 merged_nhanes |>
@@ -90,7 +109,18 @@ merged_nhanes |>
   ggplot(aes(x = age, y = total_act, color = sex)) + 
   geom_point() +
   facet_grid(. ~ education) +
-  geom_smooth(se = FALSE)
+  labs (
+    title = "Total Activity vs Age By Sex and Education Level",
+    x = "Age", 
+    y = "Total Activity Level",
+    color = "Sex"
+  ) +
+  geom_smooth(se = FALSE) 
+#Who is males and who is females???
 ```
+From this plot, we can see that for all levels of education, total activity decreases with increasing age for both males and females.
+
+Now, we will make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex:
+
 
 
