@@ -51,7 +51,8 @@ demographic_data = read_csv("nhanes_covar.csv", skip = 4) |>
     education = case_when(
       education==1 ~ "less than high school",
       education==2 ~ "high school equivalent",
-      education==3 ~ "more than high school")) 
+      education==3 ~ "more than high school"),
+  education = fct_relevel(education,"less than high school", "high school equivalent", "more than high school" )) 
 
 accelerometer_data = read_csv("nhanes_accel.csv") |>
   janitor::clean_names() |>
@@ -82,5 +83,14 @@ education_table <- demographic_data |>
 knitr::kable(education_table, format = "markdown", caption = "Age Distributions for Men and Women in Each Education Category")
 ```
 Visualization of total activity variable for each participant:
+```{r}
+merged_nhanes |>
+  group_by(seqn, age, education, sex) |>
+  summarize(total_act=sum(MIMS)) |>
+  ggplot(aes(x = age, y = total_act, color = sex)) + 
+  geom_point() +
+  facet_grid(. ~ education) +
+  geom_smooth(se = FALSE)
+```
 
 
