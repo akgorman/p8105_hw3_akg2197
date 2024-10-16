@@ -43,15 +43,16 @@ data("ny_noaa")
 ## Problem 2 
 Loading the demographic data:
 ```{r}
-demographic_data = read_csv("nhanes_covar.csv") |>
+demographic_data = read_csv("nhanes_covar.csv", skip = 4) |>
   janitor::clean_names() |>
   drop_na() 
 
 accelerometer_data = read_csv("nhanes_accel.csv") |>
-  janitor::clean_names() 
+  janitor::clean_names() |>
+  pivot_longer(names_to = "minute", values_to = "MIMS", starts_with("min"))
 
-merged_nhanes = accelerometer_data |>
-  inner_join(demographic_data, by="SEQN") |>
+merged_nhanes = demographic_data |>
+  left_join(accelerometer_data, by= join_by(seqn)) |>
   relocate(seqn, sex, age, bmi, education) |>
   filter(age>20)|>
   mutate (
@@ -64,8 +65,8 @@ merged_nhanes = accelerometer_data |>
 We can use this code chunk to examine our datasets:
 ```{r}
 demographic_data
-head(demographic_data)
+view(demographic_data)
 
 accelerometer_data
-head(accelerometer_data)
+view(accelerometer_data)
 ```

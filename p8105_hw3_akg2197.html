@@ -359,20 +359,6 @@ display: none;
 
 <div id="loading-libraries" class="section level2">
 <h2>Loading libraries</h2>
-<pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-## ✔ dplyr     1.1.4     ✔ readr     2.1.5
-## ✔ forcats   1.0.0     ✔ stringr   1.5.1
-## ✔ ggplot2   3.5.1     ✔ tibble    3.2.1
-## ✔ lubridate 1.9.3     ✔ tidyr     1.3.1
-## ✔ purrr     1.0.2     
-## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()
-## ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
-<pre class="r"><code>library(viridis)</code></pre>
-<pre><code>## Loading required package: viridisLite</code></pre>
-<pre class="r"><code>library(patchwork)</code></pre>
 </div>
 <div id="problem-1" class="section level2">
 <h2>Problem 1</h2>
@@ -382,22 +368,19 @@ data(&quot;ny_noaa&quot;)</code></pre>
 <div id="problem-2" class="section level2">
 <h2>Problem 2</h2>
 <p>Loading the demographic data:</p>
-<pre class="r"><code>demographic_data = read_csv(&quot;nhanes_covar.csv&quot;) |&gt;
+<pre class="r"><code>demographic_data = read_csv(&quot;nhanes_covar.csv&quot;, skip = 4) |&gt;
   janitor::clean_names() |&gt;
-  drop_na()</code></pre>
-<pre><code>## New names:
-## Rows: 254 Columns: 5
-## ── Column specification
-## ──────────────────────────────────────────────────────── Delimiter: &quot;,&quot; chr
-## (5): ...1, 1 = male, ...3, ...4, 1 = Less than high school
-## ℹ Use `spec()` to retrieve the full column specification for this data. ℹ
-## Specify the column types or set `show_col_types = FALSE` to quiet this message.
-## • `` -&gt; `...1`
-## • `` -&gt; `...3`
-## • `` -&gt; `...4`</code></pre>
+  drop_na() </code></pre>
+<pre><code>## Rows: 250 Columns: 5
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## dbl (5): SEQN, sex, age, BMI, education
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 <pre class="r"><code>accelerometer_data = read_csv(&quot;nhanes_accel.csv&quot;) |&gt;
   janitor::clean_names() |&gt;
-  drop_na()</code></pre>
+  pivot_longer(names_to = &quot;minute&quot;, values_to = &quot;MIMS&quot;, starts_with(&quot;min&quot;))</code></pre>
 <pre><code>## Rows: 250 Columns: 1441
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
@@ -405,6 +388,50 @@ data(&quot;ny_noaa&quot;)</code></pre>
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>merged_nhanes = demographic_data |&gt;
+  left_join(accelerometer_data, by= join_by(seqn)) |&gt;
+  relocate(seqn, sex, age, bmi, education) |&gt;
+  filter(age&gt;20)|&gt;
+  mutate (
+    sex = case_when(sex==1~&quot;male&quot;, sex==2 ~ &quot;female&quot;), 
+    education = case_when(
+      education==1 ~ &quot;less than high school&quot;,
+      education==2 ~ &quot;high school equivalent&quot;,
+      education==3 ~ &quot;more than high school&quot;)) </code></pre>
+<p>We can use this code chunk to examine our datasets:</p>
+<pre class="r"><code>demographic_data</code></pre>
+<pre><code>## # A tibble: 229 × 5
+##     seqn   sex   age   bmi education
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;
+##  1 62161     1    22  23.3         2
+##  2 62164     2    44  23.2         3
+##  3 62169     1    21  20.1         2
+##  4 62174     1    80  33.9         3
+##  5 62177     1    51  20.1         2
+##  6 62178     1    80  28.5         2
+##  7 62180     1    35  27.9         3
+##  8 62184     1    26  22.1         2
+##  9 62189     2    30  22.4         3
+## 10 62199     1    57  28           3
+## # ℹ 219 more rows</code></pre>
+<pre class="r"><code>view(demographic_data)
+
+accelerometer_data</code></pre>
+<pre><code>## # A tibble: 360,000 × 3
+##     seqn minute  MIMS
+##    &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt;
+##  1 62161 min1   1.11 
+##  2 62161 min2   3.12 
+##  3 62161 min3   1.47 
+##  4 62161 min4   0.938
+##  5 62161 min5   1.60 
+##  6 62161 min6   0.145
+##  7 62161 min7   2.10 
+##  8 62161 min8   0.509
+##  9 62161 min9   1.63 
+## 10 62161 min10  1.20 
+## # ℹ 359,990 more rows</code></pre>
+<pre class="r"><code>view(accelerometer_data)</code></pre>
 </div>
 
 
