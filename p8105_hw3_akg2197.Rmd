@@ -72,19 +72,3 @@ view(accelerometer_data)
 ```
 The data are cleaned and we can now move on to visualizing the data. 
 
-We will create a visualization of men and women in each education category:
-```{r}
-education_table <- merged_nhanes |>
-  count(education, sex) |>
-  pivot_wider(names_from = sex, values_from = n, values_fill = 0) |>
-  rename ("Level of Education" = education)
-kable(education_table, format = "markdown", caption = "Age Distributions for Men and Women in Each Education Category")
-#issue with the kable function 
-```
-Visualization of total activity variable for each participant:
-```{r}
-total_activity <- merged_nhanes |>
-  mutate(total_activity=rowSums(select(merged_nhanes, starts_with("min")), na.rm=TRUE)) |> 
-      select(-(min1:min1440))
-#running error
-```
