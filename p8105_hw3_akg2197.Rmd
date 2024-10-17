@@ -231,13 +231,15 @@ This table illustrates the month and year (either January or July, 2020 or 2024)
 
 #5 most popular starting stations for July 2024, including the number of rides originating from these stations
 ```{r}
-popular_stations <- combined_citi |>
-  filter(month == "july2024") |>
+popular_stations <- july2024 |>
   group_by(start_station) |>
-  summarise(total_rides = n(), .groups = "drop") |>
-  arrange(desc(total_rides)) 
+  summarize(origin_count = n()) |>
+  arrange(desc(origin_count)) |>
+  slice_head(n=5)
 knitr::kable(popular_stations,
              caption = "5 most popular starting stations for July 2024",
               col.names = c("Origin Station", "Number of Rides"),
-            align = "c")
+              align = "c")
 ```
+#Plot to investigate the effects of day of the week, month, and year on median ride duration
+
