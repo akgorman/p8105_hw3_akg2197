@@ -33,12 +33,61 @@ scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 ```
 
-
+This is problem 1 - the code is used from the solutions and the figures are examined for comprehension:
 ## Problem 1 
+Reading in the data:
 ```{r}
-library(p8105.datasets)
 data("ny_noaa")
 ```
+
+#### Answer questions about the data
+
+The dataset contains `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns. Variables in this dataset are weather station identification, date of observation (tenths of mm), snowfall (mm), snow depth (mm), and min/max temperature (tenths of degrees C).
+
+Cleaning the data:
+```{r}
+ny_noaa %>% 
+  count(snow) %>%
+  arrange(desc(n))
+
+ny_noaa = 
+  ny_noaa %>% 
+  separate(date, into = c("year", "month", "day"), convert = TRUE) %>% 
+  mutate(
+    tmax = as.numeric(tmax),
+    tmin = as.numeric(tmin))
+```
+0 is the most commonly observed value for snowfall. NY does not get any snow (0) a majority of days, resulting in this common value. Just behind 0 is `NA`, or missing. 13, 25, and 51 are other common values.
+
+```{r}
+ny_noaa %>% 
+  group_by(id, year, month) %>% 
+  filter(month %in% c(1, 7)) %>% 
+  summarize(mean_tmax = mean(tmax, na.rm = TRUE, color = id)) %>% 
+  ggplot(aes(x = year, y = mean_tmax, group = id)) + geom_point() + geom_path() +
+  facet_grid(~month) +
+  labs(title = "Mean monthly temperature for each station across years for January and July")
+```
+
+The above plot is a two-panel plot showing average max temperature in January and in July in each station across years. January has a lower mean temperature than July at all stations throughout all years. 
+
+```{r}
+hex = 
+  ny_noaa %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_hex()
+
+ridge = 
+  ny_noaa %>% 
+  filter(snow < 100, snow > 0) %>%
+  ggplot(aes(x = snow, y = as.factor(year))) + 
+  geom_density_ridges()
+
+hex + ridge
+```
+The above hex plot shows that most data is located around the center of the distribution. Strangely, tmax is occasionally lower than tmin. 
+
+The ridge plot shows the density of snowfall in a year. Most stations have snowfall between 0 and 35 mm per year, but others experience greater snowfall (almost 80 mm). 
 
 ## Problem 2 
 Loading the demographic data:
@@ -241,6 +290,7 @@ knitr::kable(popular_stations,
               col.names = c("Origin Station", "Number of Rides"),
               align = "c")
 ```
+
 #Plot to investigate the effects of day of the week, month, and year on median ride duration
 Here, we will generate some summary data from the combined Citi Bike dataframe. We will look at week, month, and year. 
 ```{r}
@@ -265,3 +315,6 @@ ggplot(summary_data, aes(x = weekdays, y = median_duration, group = year, color 
 ```
 This plot shows the median duration of Citi Bike rides in January and July 2020 and 2024. We can see that median ride durations are highest on weekends (Saturday and Sunday) in both January and July 2020, as well as July 2024. However, In January 2024, median durations peak on Saturday and are very low on Sunday, unlike the other months and years. Ride durations appear to be at the lowest at the beginning (~Monday) and end (~Friday) of the week, other than for Jan 2024, which shows an increase in duration beginning following Tuesday. 
 
+#Figure that shows the impact of month, membership status, and bike type on the distribution of ride duration
+
+  
