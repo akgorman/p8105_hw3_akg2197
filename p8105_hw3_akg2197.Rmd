@@ -198,6 +198,33 @@ july2024 = read_csv("citibike/July 2024 Citi.csv.zip") |>
     ride_type = str_replace(ride_type, "electric_bike", "electric"), month = "july2024"
   )
 ```
+We will bind the rows to combine these datasets, mutating the month and year variables:
+```{r}
+combined_citi = bind_rows(
+  jan2020 |> 
+    mutate(month="January", year="2020"),
+  july2020 |>
+    mutate(month="July", year="2020"),
+  jan2024 |>
+    mutate(month="January", year="2024"),
+  july2024 |>
+    mutate(month="July", year="2024")
+)
+```
 
 Now that the data are tidy, we can move onto visualization. 
 Reader-friendly table showing the total number of rides in each combination of year and month separating casual riders and Citi Bike members:
+```{r}
+combined_citi |>
+  mutate(member_casual = recode(member_casual,
+                                 "member" = "Citi Bike Member",
+                                 "casual" = "Casual Rider"),
+         Timeframe = paste(month, year)) |>
+  group_by(member_casual, Timeframe) |>
+  summarise(total_obs = n(), .groups = 'drop') |>
+  pivot_wider(
+    names_from = member_casual,
+    values_from = total_obs) |> 
+  knitr::kable()
+```
+This table illustrates the month and year (either January or July, 2020 or 2024), and the type of rider, which is either a casual Citi Bike rider or a member of Citi Bike. The total rides for each month and year as well as type of rider is shown. Since 2020, the number of both casual riders and Citi Bike members have greatly increased. 
